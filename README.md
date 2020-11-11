@@ -1,7 +1,7 @@
-# Embedded Systems Lab1
-A lab as a part of the 'Embedded Systems' course.
+# Embedded Systems Lab2
+A continue lab of 'Lab1' as a part of the 'Embedded Systems' course.
 Using switches to control LEDs and generate sound.
-The program includes 3 modes, a binary counter, a shifter, and a fan, each one controlled by a specific switch.
+The program includes 3 modes, a binary counter, a shifter, and a fan, each one controlled by a specific switch, and controlling the LCD diaplsy.
 The code is written for the Basys MX3 board.
 
 ## Mode 1 - Binary Counter
