@@ -1,5 +1,7 @@
 #include <xc.h>
 #include "main.h"
+
+
 void main()
 {
     init();
@@ -20,9 +22,14 @@ void main()
         
         make_sound();
     }
-    
+    turnOnScreen(7);				// mode(7) = print 'Exit'
     reset_LEDs();                   //  turn OFF the LEDs
 }
+
+
+//	write to the LCD screen
+//	str is the string to write
+//	upOrDown indicates where to write, 0 for first line, 1 for seconde line
 void screenWrite(char* str, int upOrDown)
 {
     
@@ -32,16 +39,17 @@ void screenWrite(char* str, int upOrDown)
     ANSELBbits.ANSB15 = 0; // disable analog functionality on RB15 (DISP_RS)
     TRISDbits.TRISD5 = 0; // RD5 (DISP_RW) set as an output
     TRISDbits.TRISD4 = 0; // RD4 (DISP_EN) set as an output
-    //TRISEbits.TRISE0 = 1; // RE0 (DB0) set as input (change 1 to 0 for
-    TRISE&=0xff00;
-    PORTBbits.RB15=0;//rs=0
-    PORTDbits.RD5=0;//w=0
+    TRISE &= 0xff00;
+    ANSELEbits.ANSE2 = 0;
+    ANSELEbits.ANSE4 = 0;
+    ANSELEbits.ANSE5 = 0;
+    ANSELEbits.ANSE6 = 0;
+    PORTBbits.RB15=0;		//rs=0
+    PORTDbits.RD5=0;		//w=0
     ANSELEbits.ANSE7 = 0;
-
     PORTE=control;
     PORTDbits.RD4=1;
     PORTDbits.RD4=0;
-    //for(j=0;j<32000;j++);
     busy();
     
     PORTBbits.RB15=1;   //rs=1
@@ -51,11 +59,12 @@ void screenWrite(char* str, int upOrDown)
         PORTE=str[i];
         PORTDbits.RD4=1;
         PORTDbits.RD4=0;
-        //for(j=0;j<32000;j++);
         busy();
     }
 
 }
+
+
 void busy(void)
 {
     char RD,RS;
@@ -64,72 +73,87 @@ void busy(void)
     RD=PORTDbits.RD5;
     RS=PORTBbits.RB15;
     STATUS_TRISE=TRISE;
-	PORTDbits.RD5 = 1;//w/r
-	PORTBbits.RB15 = 0;//rs 
-               portMap = TRISE;
+	PORTDbits.RD5 = 1;	//w/r
+	PORTBbits.RB15 = 0;	//rs 
+    portMap = TRISE;
 	portMap |= 0x80;
 	TRISE = portMap;
-do
-     {
-     PORTDbits.RD4=1;//enable=1
-     PORTDbits.RD4=0;//enable=0
-     }
-   while(PORTEbits.RE7);// BF ?????
-        PORTDbits.RD5=RD; 
-        PORTBbits.RB15=RS;
-        TRISE=STATUS_TRISE;   
+    do
+    {
+        PORTDbits.RD4 = 1;	//enable=1
+        PORTDbits.RD4 = 0;	//enable=0
+    }while(PORTEbits.RE7);	// BF ?????
+    
+    PORTDbits.RD5 = RD; 
+    PORTBbits.RB15 = RS;
+    TRISE = STATUS_TRISE;   
 }
+
 
 void turnOnScreen(int mode)
 {
-    if(mode == 0)
+    if(mode == 0)		//	counter
     {
         screenWrite("Mode 0:         ", 0);
-         if (PORTDbits.RD15) // sw3 is ON
+         if (PORTDbits.RD15) 		// SW3 is ON
          {
-             if (PORTDbits.RD14) // sw3 & sw4 is ON
+             if (PORTDbits.RD14) 	// SW3 & SW4 is ON
                  screenWrite("Count Down Fast ",1);
-             else               // sw3 is ON & sw4 is OFF
+             else               	// SW3 is ON & SW4 is OFF
                  screenWrite("Count Down Slow ",1);
          }
-         else if(PORTDbits.RD14) // sw3 is OFF & sw4 is ON
+         else if(PORTDbits.RD14) 	// SW3 is OFF & SW4 is ON
                 screenWrite("Count Up Fast   ",1);
-         else                   // sw3 is OFF & sw4 is OFF   
+         else                   	// SW3 is OFF & SW4 is OFF   
                 screenWrite("Count Up Slow   ",1);
     }
-    
-    if(mode == 1)
+    else if(mode == 1)	//	shift
     {
          screenWrite("Mode 1:         ", 0);
-         if (PORTDbits.RD15) // sw3 is ON
+         if (PORTDbits.RD15) 		// SW3 is ON
          {
-             if (PORTDbits.RD14) // sw3 & sw4 is ON
+             if (PORTDbits.RD14) 	// SW3 & SW4 is ON
                  screenWrite("Shift Right Fast",1);
-             else               // sw3 is ON & sw4 is OFF
+             else               	// SW3 is ON & SW4 is OFF
                  screenWrite("Shift Right Slow",1);
          }
-         else if(PORTDbits.RD14) // sw3 is OFF & sw4 is ON
+         else if(PORTDbits.RD14) 	// SW3 is OFF & SW4 is ON
                 screenWrite("Shift Left Fast ",1);
-         else                   // sw3 is OFF & sw4 is OFF   
+         else                   	// SW3 is OFF & SW4 is OFF   
                 screenWrite("Shift Left Slow ",1);
     }
-        
-        if(mode == 2)
+    else if(mode == 2)	//	swing (fan)
     {
          screenWrite("Mode 2:         ", 0);
-         if (PORTDbits.RD15) // sw3 is ON
+         if (PORTDbits.RD15) 		// SW3 is ON
          {
-             if (PORTDbits.RD14) // sw3 & sw4 is ON
+             if (PORTDbits.RD14) 	// SW3 & SW4 is ON
                  screenWrite("Swing Down Fast ",1);
-             else               // sw3 is ON & sw4 is OFF
+             else               	// SW3 is ON & SW4 is OFF
                  screenWrite("Swing Down Slow ",1);
          }
-         else if(PORTDbits.RD14) // sw3 is OFF & sw4 is ON
+         else if(PORTDbits.RD14) 	// SW3 is OFF & SW4 is ON
                 screenWrite("Swing Up Fast   ",1);
-         else                   // sw3 is OFF & sw4 is OFF   
+         else                   	// SW3 is OFF & SW4 is OFF   
                 screenWrite("Swing Up Slow   ",1);
     }
+    else if(mode == 5)	//	halt
+    {
+        screenWrite("Mode 5:         ", 0);
+        screenWrite("Halt            ", 1);
+    }
+    else if(mode == 6)	//	beep
+    {
+        screenWrite("Mode 6:         ", 0);
+        screenWrite("Beep Mode       ", 1);
+    }    
+    else if(mode == 7)	//	exit
+    {
+        screenWrite("Mode 7:         ", 0);
+        screenWrite("Exit            ", 1);
+    }   
 }
+
 
 void counter()
 {
@@ -173,6 +197,7 @@ void shift()
     }
 }
 
+
 //      LEDs: 0010 0100                         LEDSs:  0010 0100                         
 //      AND   1111 0000                         AND     0000 1111
 //      RES:  0010 0000 shift << 1              RES:    0000 0100   shift >> 1
@@ -204,6 +229,7 @@ void fan()
     }
 }
 
+
 void make_sound()
 {
     //  if SW6 is OFF -> exit the function and do not make sound
@@ -223,9 +249,13 @@ void make_sound()
     
     //  if neither SW0, SW1 nor SW2 is ON, add delay
     if (!(PORTFbits.RF3 || PORTFbits.RF5 || PORTFbits.RF4))
+    {
+        turnOnScreen(6);
         delay();
+    }
         
 }
+
 
 void delay()
 {
@@ -236,20 +266,25 @@ void delay()
     int j;
     for (j = 0; j < interval; j++)  //  the actual delay
         ;
-    
+    if(PORTBbits.RB11)
+        turnOnScreen(5);
     while (PORTBbits.RB11)  //  while SW5 is ON, pause the iteration
-        ;
+    ;
 }
+
 
 void reset_LEDs()
 {
     PORTA = 0x0;
 }
 
-void reset_LCDs()
+
+void reset_LCD()
 {
-   
+   screenWrite("                ", 0);	//	clear first line
+   screenWrite("                ", 1);	//	clear second line
 }
+
 
 void init()
 {
@@ -273,13 +308,12 @@ void init()
     ANSELBbits.ANSB15 = 0; // disable analog functionality on RB15 (DISP_RS)
     TRISDbits.TRISD5 = 0; // RD5 (DISP_RW) set as an output
     TRISDbits.TRISD4 = 0; // RD4 (DISP_EN) set as an output
-    //TRISEbits.TRISE0 = 1; // RE0 (DB0) set as input (change 1 to 0 for
-    TRISE&=0xff00;
+    TRISE &= 0xff00;
     ANSELEbits.ANSE2 = 0;
     ANSELEbits.ANSE4 = 0;
     ANSELEbits.ANSE5 = 0;
     ANSELEbits.ANSE6 = 0;
-    PORTBbits.RB15=0;//rs=0
-    PORTDbits.RD5=0;//w=0
+    PORTBbits.RB15 = 0;	//rs=0
+    PORTDbits.RD5 = 0;	//w=0
     ANSELEbits.ANSE7 = 0;
 }

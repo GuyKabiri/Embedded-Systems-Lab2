@@ -18,6 +18,7 @@ void screenWrite(char* str, int upOrDown);
 void turnOnScreen(int mode);
 void init();
 void reset_LEDs();
+void reset_LCD();
 void counter();
 void delay();
 void shift();
